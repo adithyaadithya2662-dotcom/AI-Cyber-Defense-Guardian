@@ -64,4 +64,4 @@ Normal activity → unusual login → repeated failed attempts → suspicious be
 
 AI Cyber Defense Guardian
 
-Built as a CSE Hackathon Project.
+Built by Adithya.
