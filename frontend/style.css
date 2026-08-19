@@ -1,0 +1,600 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #07111f;
+    --panel: #0d1b2a;
+    --panel-light: #12263a;
+    --border: #1e3a52;
+    --text: #e8f1f8;
+    --muted: #7f9bb2;
+    --primary: #00d4ff;
+    --success: #00e676;
+    --warning: #ffb300;
+    --danger: #ff3d5a;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+
+/* =========================
+   TOP BAR
+========================= */
+
+.topbar {
+    height: 82px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 0 35px;
+
+    background: #081522;
+    border-bottom: 1px solid var(--border);
+
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.brand-icon {
+    width: 48px;
+    height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 26px;
+
+    background: #102a3f;
+    border: 1px solid var(--primary);
+
+    border-radius: 12px;
+
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.15);
+}
+
+.brand h1 {
+    font-size: 20px;
+    letter-spacing: 0.5px;
+}
+
+.brand p {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.system-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    font-size: 12px;
+    font-weight: bold;
+
+    color: var(--success);
+}
+
+.status-dot {
+    width: 9px;
+    height: 9px;
+
+    border-radius: 50%;
+
+    background: var(--success);
+
+    box-shadow: 0 0 10px var(--success);
+
+    animation: pulse 1.8s infinite;
+}
+
+
+/* =========================
+   DASHBOARD
+========================= */
+
+.dashboard {
+    max-width: 1500px;
+    margin: auto;
+
+    padding: 30px;
+}
+
+
+/* =========================
+   STAT CARDS
+========================= */
+
+.stats-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 18px;
+
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: var(--panel);
+
+    border: 1px solid var(--border);
+
+    border-radius: 14px;
+
+    padding: 22px;
+
+    transition: 0.25s;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+
+    border-color: var(--primary);
+
+    box-shadow:
+        0 8px 30px rgba(0, 0, 0, 0.25);
+}
+
+.stat-card.danger {
+    border-left: 4px solid var(--danger);
+}
+
+.stat-card.warning {
+    border-left: 4px solid var(--warning);
+}
+
+.stat-label {
+    color: var(--muted);
+
+    font-size: 11px;
+
+    font-weight: bold;
+
+    letter-spacing: 1px;
+}
+
+.stat-value {
+    font-size: 34px;
+
+    font-weight: bold;
+
+    margin-top: 10px;
+}
+
+.risk-max {
+    font-size: 15px;
+
+    color: var(--muted);
+}
+
+.stat-description {
+    margin-top: 8px;
+
+    font-size: 12px;
+
+    color: var(--muted);
+}
+
+
+/* =========================
+   PANELS
+========================= */
+
+.panel {
+    background: var(--panel);
+
+    border: 1px solid var(--border);
+
+    border-radius: 14px;
+
+    padding: 22px;
+
+    margin-bottom: 20px;
+}
+
+.panel-header {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 20px;
+}
+
+.panel-header h2 {
+    font-size: 16px;
+}
+
+.panel-header p {
+    color: var(--muted);
+
+    font-size: 12px;
+
+    margin-top: 5px;
+}
+
+
+/* =========================
+   MAIN GRID
+========================= */
+
+.main-grid {
+    display: grid;
+
+    grid-template-columns:
+        2fr 1fr;
+
+    gap: 20px;
+
+    margin-bottom: 20px;
+}
+
+
+/* =========================
+   BUTTON
+========================= */
+
+button {
+    border: none;
+
+    background: var(--primary);
+
+    color: #00131c;
+
+    font-size: 11px;
+
+    font-weight: bold;
+
+    padding: 11px 16px;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+button:hover {
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 0 18px rgba(0, 212, 255, 0.3);
+}
+
+button:active {
+    transform: scale(0.97);
+}
+
+
+/* =========================
+   THREAT LIST
+========================= */
+
+.threat-list {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+    max-height: 350px;
+
+    overflow-y: auto;
+}
+
+.threat-item {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 14px;
+
+    border-radius: 10px;
+
+    background: var(--panel-light);
+
+    border: 1px solid var(--border);
+}
+
+.threat-info {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+}
+
+.threat-icon {
+    font-size: 18px;
+}
+
+.threat-title {
+    font-size: 13px;
+
+    font-weight: bold;
+}
+
+.threat-meta {
+    font-size: 11px;
+
+    color: var(--muted);
+
+    margin-top: 4px;
+}
+
+.threat-risk {
+    text-align: right;
+
+    font-weight: bold;
+
+    font-size: 13px;
+}
+
+
+/* =========================
+   RISK PANEL
+========================= */
+
+.risk-panel {
+    display: flex;
+
+    flex-direction: column;
+}
+
+.risk-circle {
+    width: 190px;
+    height: 190px;
+
+    margin: auto;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border: 8px solid var(--primary);
+
+    box-shadow:
+        0 0 35px rgba(0, 212, 255, 0.15);
+}
+
+.risk-number {
+    font-size: 40px;
+
+    font-weight: bold;
+}
+
+.risk-number small {
+    font-size: 14px;
+
+    color: var(--muted);
+}
+
+.risk-severity {
+    margin-top: 6px;
+
+    font-size: 12px;
+
+    font-weight: bold;
+
+    color: var(--primary);
+}
+
+
+/* =========================
+   AI ANALYSIS
+========================= */
+
+.analysis-container {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 15px;
+}
+
+.analysis-box {
+    padding: 18px;
+
+    background: var(--panel-light);
+
+    border: 1px solid var(--border);
+
+    border-radius: 10px;
+}
+
+.analysis-box h3 {
+    font-size: 13px;
+
+    margin-bottom: 12px;
+}
+
+.analysis-box p {
+    font-size: 12px;
+
+    color: var(--muted);
+
+    line-height: 1.7;
+}
+
+.reason {
+    padding: 9px 0;
+
+    border-bottom: 1px solid var(--border);
+
+    font-size: 12px;
+}
+
+
+/* =========================
+   RECOMMENDATIONS
+========================= */
+
+.recommendations {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 10px;
+}
+
+.recommendation {
+    padding: 14px;
+
+    background: var(--panel-light);
+
+    border: 1px solid var(--border);
+
+    border-radius: 10px;
+
+    font-size: 12px;
+}
+
+.recommendation::before {
+    content: "🛡️";
+
+    margin-right: 8px;
+}
+
+
+/* =========================
+   EMPTY STATE
+========================= */
+
+.empty-state {
+    padding: 35px;
+
+    text-align: center;
+
+    color: var(--muted);
+
+    font-size: 12px;
+
+    background: var(--panel-light);
+
+    border-radius: 10px;
+
+    border: 1px dashed var(--border);
+}
+
+
+/* =========================
+   FOOTER
+========================= */
+
+footer {
+    text-align: center;
+
+    padding: 25px 0;
+
+    color: var(--muted);
+
+    font-size: 11px;
+}
+
+footer span {
+    margin: 0 8px;
+}
+
+
+/* =========================
+   ANIMATIONS
+========================= */
+
+@keyframes pulse {
+
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.35;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1000px) {
+
+    .stats-grid {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
+    .main-grid {
+        grid-template-columns:
+            1fr;
+    }
+
+}
+
+
+@media (max-width: 650px) {
+
+    .topbar {
+        padding: 0 15px;
+    }
+
+    .brand h1 {
+        font-size: 15px;
+    }
+
+    .system-status {
+        display: none;
+    }
+
+    .dashboard {
+        padding: 15px;
+    }
+
+    .stats-grid {
+        grid-template-columns:
+            1fr;
+    }
+
+    .analysis-container {
+        grid-template-columns:
+            1fr;
+    }
+
+    .recommendations {
+        grid-template-columns:
+            1fr;
+    }
+
+}

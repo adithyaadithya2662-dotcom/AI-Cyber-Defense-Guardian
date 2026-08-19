@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        AI Cyber Defense Guardian
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================
+         TOP BAR
+    ====================================== -->
+
+    <header class="topbar">
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                🛡️
+            </div>
+
+            <div>
+
+                <h1>
+                    AI Cyber Defense Guardian
+                </h1>
+
+                <p>
+                    Intelligent Threat Detection & Response System
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="system-status">
+
+            <span class="status-dot"></span>
+
+            SYSTEM ONLINE
+
+        </div>
+
+    </header>
+
+
+
+    <!-- =====================================
+         MAIN DASHBOARD
+    ====================================== -->
+
+    <main class="dashboard">
+
+
+        <!-- =====================================
+             STATISTICS
+        ====================================== -->
+
+        <section class="stats-grid">
+
+
+            <!-- TOTAL EVENTS -->
+
+            <div class="stat-card">
+
+                <div class="stat-label">
+                    TOTAL EVENTS
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="totalEvents"
+                >
+                    0
+                </div>
+
+                <div class="stat-description">
+                    Security events analyzed
+                </div>
+
+            </div>
+
+
+
+            <!-- CRITICAL THREATS -->
+
+            <div class="stat-card danger">
+
+                <div class="stat-label">
+                    CRITICAL THREATS
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="criticalThreats"
+                >
+                    0
+                </div>
+
+                <div class="stat-description">
+                    Critical security incidents
+                </div>
+
+            </div>
+
+
+
+            <!-- HIGH RISK -->
+
+            <div class="stat-card warning">
+
+                <div class="stat-label">
+                    HIGH RISK
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="highThreats"
+                >
+                    0
+                </div>
+
+                <div class="stat-description">
+                    High severity incidents
+                </div>
+
+            </div>
+
+
+
+            <!-- CURRENT RISK -->
+
+            <div class="stat-card">
+
+                <div class="stat-label">
+                    CURRENT RISK
+                </div>
+
+                <div class="stat-value">
+
+                    <span id="currentRisk">
+                        0
+                    </span>
+
+                    <span class="risk-max">
+                        /100
+                    </span>
+
+                </div>
+
+                <div class="stat-description">
+                    Current security risk score
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =====================================
+             LIVE THREAT MONITOR
+        ====================================== -->
+
+        <section class="main-grid">
+
+
+            <div class="panel">
+
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            🚨 Live Threat Monitor
+                        </h2>
+
+                        <p>
+                            Latest security events detected by the AI engine
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        id="scanButton"
+                    >
+                        RUN SECURITY SCAN
+                    </button>
+
+                </div>
+
+
+
+                <div
+                    class="threat-list"
+                    id="threatList"
+                >
+
+                    <div class="empty-state">
+
+                        No security events detected yet.
+
+                        <br><br>
+
+                        Click
+                        <strong>
+                            RUN SECURITY SCAN
+                        </strong>
+                        to begin analysis.
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- =====================================
+                 CURRENT RISK
+            ====================================== -->
+
+            <div class="panel risk-panel">
+
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            🎯 Current Risk
+                        </h2>
+
+                        <p>
+                            AI-generated security assessment
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="risk-circle">
+
+                    <div
+                        class="risk-number"
+                        id="riskScore"
+                    >
+                        0
+
+                        <small>
+                            /100
+                        </small>
+
+                    </div>
+
+
+                    <div
+                        class="risk-severity"
+                        id="riskSeverity"
+                    >
+                        LOW
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =====================================
+             SECURITY RISK ANALYTICS
+        ====================================== -->
+
+        <section class="panel">
+
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2>
+                        📈 Security Risk Analytics
+                    </h2>
+
+                    <p>
+                        Real-time risk score across security scans
+                    </p>
+
+                </div>
+
+
+                <div>
+
+                    <span
+                        id="graphStatus"
+                        style="
+                            color: #00e676;
+                            font-size: 11px;
+                            font-weight: bold;
+                        "
+                    >
+                        ● LIVE
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <div
+                style="
+                    height: 320px;
+                    position: relative;
+                "
+            >
+
+                <canvas
+                    id="riskChart"
+                ></canvas>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =====================================
+             THREAT DISTRIBUTION
+        ====================================== -->
+
+        <section class="panel">
+
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2>
+                        📊 Threat Distribution
+                    </h2>
+
+                    <p>
+                        Security events detected by category
+                    </p>
+
+                </div>
+
+
+                <div>
+
+                    <span
+                        style="
+                            color: #00e676;
+                            font-size: 11px;
+                            font-weight: bold;
+                        "
+                    >
+                        ● LIVE
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <div
+                style="
+                    height: 320px;
+                    position: relative;
+                "
+            >
+
+                <canvas
+                    id="threatChart"
+                ></canvas>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =====================================
+             EXPLAINABLE AI
+        ====================================== -->
+
+        <section class="panel">
+
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2>
+                        🧠 Explainable AI Analysis
+                    </h2>
+
+                    <p>
+                        Why the system considers the activity suspicious
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <div
+                class="analysis-container"
+                id="aiAnalysis"
+            >
+
+                <div class="empty-state">
+
+                    AI analysis will appear here
+                    after a security scan.
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =====================================
+             DEFENSIVE RECOMMENDATIONS
+        ====================================== -->
+
+        <section class="panel">
+
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2>
+                        🛡️ Defensive Recommendations
+                    </h2>
+
+                    <p>
+                        AI-generated actions to reduce security risk
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <div
+                class="recommendations"
+                id="recommendations"
+            >
+
+                <div class="empty-state">
+
+                    No recommendations available yet.
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =====================================
+             INCIDENT TIMELINE
+        ====================================== -->
+
+        <section class="panel">
+
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2>
+                        ⏱️ Incident Timeline
+                    </h2>
+
+                    <p>
+                        Security activity during the current session
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <div
+                id="incidentTimeline"
+                class="threat-list"
+            >
+
+                <div class="empty-state">
+
+                    No incidents recorded yet.
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+    </main>
+
+
+
+    <!-- =====================================
+         FOOTER
+    ====================================== -->
+
+    <footer>
+
+        AI Cyber Defense Guardian
+
+        <span>•</span>
+
+        Intelligent Security Monitoring
+
+        <span>•</span>
+
+        Hackathon Prototype
+
+    </footer>
+
+
+
+    <!-- =====================================
+         CHART.JS
+    ====================================== -->
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/chart.js"
+    ></script>
+
+
+
+    <!-- =====================================
+         APPLICATION JAVASCRIPT
+    ====================================== -->
+
+    <script
+        src="app.js"
+    ></script>
+
+
+</body>
+
+</html>
