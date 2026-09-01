@@ -1,4 +1,4 @@
-const API_URL = "https://flooring-hired-applicants-pets.trycloudflare.com/api/analyze";
+const API_URL = "https://musical-alumni-stock-subaru.trycloudflare.com/api/analyze";
 
 // ========================================
 // DASHBOARD STATE
