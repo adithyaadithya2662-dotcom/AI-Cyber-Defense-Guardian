@@ -1,1354 +1,919 @@
-// ========================================
+// ============================================
 // AI CYBER DEFENSE GUARDIAN
 // FRONTEND APPLICATION
-// ========================================
+// ============================================
 
+// Use the same server that is serving the dashboard.
+const API_BASE = "";
 
-// ========================================
-// API CONFIGURATION
-// ========================================
+// ============================================
+// APPLICATION STATE
+// ============================================
 
-const API_URL =
-    "https://flooring-hired-applicants-pets.trycloudflare.com/api/analyze";
-
-
-// ========================================
-// DASHBOARD STATE
-// ========================================
-
-let totalEvents = 0;
-let criticalThreats = 0;
-let highThreats = 0;
-
-let scanNumber = 0;
-
+let events = [];
 let riskHistory = [];
-let scanLabels = [];
 
 let riskChart = null;
 let threatChart = null;
 
 
-// ========================================
-// THREAT COUNTERS
-// ========================================
-
-const threatCounts = {
-
-    normal_login: 0,
-
-    failed_login: 0,
-
-    suspicious_login: 0,
-
-    new_ip_login: 0,
-
-    multiple_failed_logins: 0
-
-};
-
-
-// ========================================
+// ============================================
 // DOM ELEMENTS
-// ========================================
+// ============================================
 
-const scanButton =
-    document.getElementById("scanButton");
+const totalEventsElement = document.getElementById("totalEvents");
+const criticalThreatsElement = document.getElementById("criticalThreats");
+const highThreatsElement = document.getElementById("highThreats");
 
-const totalEventsElement =
-    document.getElementById("totalEvents");
+const currentRiskElement = document.getElementById("currentRisk");
+const riskScoreElement = document.getElementById("riskScore");
+const riskSeverityElement = document.getElementById("riskSeverity");
 
-const criticalThreatsElement =
-    document.getElementById("criticalThreats");
+const threatListElement = document.getElementById("threatList");
+const aiAnalysisElement = document.getElementById("aiAnalysis");
+const recommendationsElement = document.getElementById("recommendations");
+const incidentTimelineElement = document.getElementById("incidentTimeline");
 
-const highThreatsElement =
-    document.getElementById("highThreats");
-
-const currentRiskElement =
-    document.getElementById("currentRisk");
-
-const riskScoreElement =
-    document.getElementById("riskScore");
-
-const riskSeverityElement =
-    document.getElementById("riskSeverity");
-
-const threatList =
-    document.getElementById("threatList");
-
-const aiAnalysis =
-    document.getElementById("aiAnalysis");
-
-const recommendations =
-    document.getElementById("recommendations");
-
-const incidentTimeline =
-    document.getElementById("incidentTimeline");
+const scanButton = document.getElementById("scanButton");
 
 
-// ========================================
-// INITIALIZE RISK CHART
-// ========================================
+// ============================================
+// START APPLICATION
+// ============================================
 
-function initializeRiskChart() {
+document.addEventListener("DOMContentLoaded", () => {
 
-    const canvas =
+    initializeCharts();
+
+    scanButton.addEventListener("click", runSecurityScan);
+
+    updateDashboard();
+
+});
+
+
+// ============================================
+// RUN SECURITY SCAN
+// ============================================
+
+async function runSecurityScan() {
+
+    scanButton.disabled = true;
+    scanButton.textContent = "SCANNING...";
+
+    try {
+
+        const response = await fetch(`${API_BASE}/api/analyze`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            },
+            cache: "no-store"
+        });
+
+        if (!response.ok) {
+            throw new Error(`API returned HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        console.log("Security scan result:", data);
+
+        processSecurityEvent(data);
+
+    } catch (error) {
+
+        console.error("Security scan failed:", error);
+
+        showError(
+            "Unable to connect to the security analysis API. " +
+            "Please check the deployment logs."
+        );
+
+    } finally {
+
+        scanButton.disabled = false;
+        scanButton.textContent = "RUN SECURITY SCAN";
+
+    }
+}
+
+
+// ============================================
+// PROCESS SECURITY EVENT
+// ============================================
+
+function processSecurityEvent(data) {
+
+    if (!data || !data.event || !data.final_risk) {
+
+        console.error("Invalid API response:", data);
+
+        showError("Invalid security analysis response.");
+
+        return;
+    }
+
+
+    // ========================================
+    // IMPORTANT:
+    // Use FINAL RISK severity.
+    //
+    // NOT rule_analysis.severity
+    // ========================================
+
+    const event = {
+        ...data,
+
+        id: Date.now(),
+
+        timestamp: data.event.timestamp ||
+                   new Date().toLocaleString(),
+
+        finalScore: Number(
+            data.final_risk.final_risk_score || 0
+        ),
+
+        finalSeverity: String(
+            data.final_risk.severity || "LOW"
+        ).toUpperCase(),
+
+        threatType:
+            data.explanation?.threat_type ||
+            "Security Event",
+
+        username:
+            data.event.username ||
+            "Unknown",
+
+        ip:
+            data.event.ip_address ||
+            "Unknown",
+
+        eventType:
+            data.event.event_type ||
+            "unknown"
+    };
+
+
+    // Add newest event to beginning.
+    events.unshift(event);
+
+
+    // Keep maximum 100 events in browser memory.
+    if (events.length > 100) {
+        events = events.slice(0, 100);
+    }
+
+
+    // Store risk history.
+    riskHistory.push({
+        label: getTimeLabel(),
+        score: event.finalScore
+    });
+
+
+    if (riskHistory.length > 30) {
+        riskHistory.shift();
+    }
+
+
+    updateDashboard();
+
+    displayAIAnalysis(event);
+
+    displayRecommendations(event);
+
+    displayIncidentTimeline(event);
+
+    updateCharts();
+
+}
+
+
+// ============================================
+// UPDATE COMPLETE DASHBOARD
+// ============================================
+
+function updateDashboard() {
+
+    updateStatistics();
+
+    updateCurrentRisk();
+
+    updateThreatList();
+
+}
+
+
+// ============================================
+// UPDATE STATISTICS
+// ============================================
+
+function updateStatistics() {
+
+    // TOTAL EVENTS
+
+    totalEventsElement.textContent = events.length;
+
+
+    // CRITICAL
+
+    const criticalCount = events.filter(event => {
+
+        return event.finalSeverity === "CRITICAL";
+
+    }).length;
+
+
+    criticalThreatsElement.textContent = criticalCount;
+
+
+    // HIGH
+
+    const highCount = events.filter(event => {
+
+        return event.finalSeverity === "HIGH";
+
+    }).length;
+
+
+    highThreatsElement.textContent = highCount;
+
+
+    console.log("Statistics:", {
+        total: events.length,
+        critical: criticalCount,
+        high: highCount
+    });
+
+}
+
+
+// ============================================
+// UPDATE CURRENT RISK
+// ============================================
+
+function updateCurrentRisk() {
+
+    if (events.length === 0) {
+
+        currentRiskElement.textContent = "0";
+
+        riskScoreElement.innerHTML =
+            `0 <small>/100</small>`;
+
+        riskSeverityElement.textContent = "LOW";
+
+        return;
+    }
+
+
+    const latestEvent = events[0];
+
+    const score = latestEvent.finalScore;
+
+    const severity = latestEvent.finalSeverity;
+
+
+    currentRiskElement.textContent = score;
+
+    riskScoreElement.innerHTML =
+        `${score} <small>/100</small>`;
+
+    riskSeverityElement.textContent = severity;
+
+
+    updateRiskAppearance(severity);
+
+}
+
+
+// ============================================
+// RISK APPEARANCE
+// ============================================
+
+function updateRiskAppearance(severity) {
+
+    const riskCircle = document.querySelector(".risk-circle");
+
+    if (!riskCircle) {
+        return;
+    }
+
+
+    // Remove previous classes.
+
+    riskCircle.classList.remove(
+        "risk-low",
+        "risk-medium",
+        "risk-high",
+        "risk-critical"
+    );
+
+
+    switch (severity) {
+
+        case "CRITICAL":
+
+            riskCircle.classList.add("risk-critical");
+
+            break;
+
+
+        case "HIGH":
+
+            riskCircle.classList.add("risk-high");
+
+            break;
+
+
+        case "MEDIUM":
+
+            riskCircle.classList.add("risk-medium");
+
+            break;
+
+
+        default:
+
+            riskCircle.classList.add("risk-low");
+
+            break;
+    }
+
+}
+
+
+// ============================================
+// THREAT LIST
+// ============================================
+
+function updateThreatList() {
+
+    if (events.length === 0) {
+
+        threatListElement.innerHTML = `
+            <div class="empty-state">
+
+                No security events detected yet.
+
+                <br><br>
+
+                Click
+                <strong>RUN SECURITY SCAN</strong>
+                to begin analysis.
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    threatListElement.innerHTML = events
+        .slice(0, 20)
+        .map(event => {
+
+            const severityClass =
+                event.finalSeverity.toLowerCase();
+
+
+            const score = event.finalScore;
+
+
+            return `
+
+                <div class="threat-item ${severityClass}">
+
+                    <div class="threat-indicator"></div>
+
+                    <div class="threat-content">
+
+                        <h3>
+                            ${escapeHTML(event.threatType)}
+                        </h3>
+
+                        <p>
+                            User:
+                            <strong>
+                                ${escapeHTML(event.username)}
+                            </strong>
+
+                            &nbsp; • &nbsp;
+
+                            IP:
+                            ${escapeHTML(event.ip)}
+                        </p>
+
+                        <p>
+                            Event:
+                            ${escapeHTML(event.eventType)}
+                        </p>
+
+                    </div>
+
+                    <div class="threat-score">
+
+                        <strong>
+                            ${score}/100
+                        </strong>
+
+                        <span>
+                            ${event.finalSeverity}
+                        </span>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        })
+        .join("");
+
+}
+
+
+// ============================================
+// AI ANALYSIS
+// ============================================
+
+function displayAIAnalysis(event) {
+
+    const ai = event.ai_analysis;
+    const explanation = event.explanation;
+    const finalRisk = event.final_risk;
+
+
+    if (!ai || !explanation) {
+        return;
+    }
+
+
+    const reasons =
+        explanation.reasons || [];
+
+
+    aiAnalysisElement.innerHTML = `
+
+        <div class="analysis-card">
+
+            <div class="analysis-header">
+
+                <h3>
+                    ${escapeHTML(
+                        explanation.threat_type ||
+                        "Security Threat"
+                    )}
+                </h3>
+
+                <span class="severity-badge ${event.finalSeverity.toLowerCase()}">
+                    ${event.finalSeverity}
+                </span>
+
+            </div>
+
+
+            <div class="analysis-details">
+
+                <div>
+                    <strong>Risk Score</strong>
+                    <span>
+                        ${event.finalScore}/100
+                    </span>
+                </div>
+
+
+                <div>
+                    <strong>Rule Risk</strong>
+                    <span>
+                        ${event.rule_analysis?.risk_score ?? 0}/100
+                    </span>
+                </div>
+
+
+                <div>
+                    <strong>AI Anomaly Score</strong>
+                    <span>
+                        ${ai.anomaly_score ?? 0}
+                    </span>
+                </div>
+
+
+                <div>
+                    <strong>AI Anomaly</strong>
+                    <span>
+                        ${ai.is_anomaly ? "YES" : "NO"}
+                    </span>
+                </div>
+
+
+                <div>
+                    <strong>Confidence</strong>
+                    <span>
+                        ${explanation.confidence ?? 0}%
+                    </span>
+                </div>
+
+            </div>
+
+
+            <h4>
+                Detection Reasons
+            </h4>
+
+
+            <ul>
+
+                ${reasons.map(reason => `
+                    <li>
+                        ${escapeHTML(reason)}
+                    </li>
+                `).join("")}
+
+            </ul>
+
+        </div>
+
+    `;
+
+}
+
+
+// ============================================
+// RECOMMENDATIONS
+// ============================================
+
+function displayRecommendations(event) {
+
+    const recommendations =
+        event.explanation?.recommendations || [];
+
+
+    if (recommendations.length === 0) {
+
+        recommendationsElement.innerHTML = `
+            <div class="empty-state">
+                No recommendations available.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    recommendationsElement.innerHTML = `
+
+        <div class="recommendation-list">
+
+            ${recommendations.map((recommendation, index) => `
+
+                <div class="recommendation-item">
+
+                    <span class="recommendation-number">
+                        ${index + 1}
+                    </span>
+
+                    <span>
+                        ${escapeHTML(recommendation)}
+                    </span>
+
+                </div>
+
+            `).join("")}
+
+        </div>
+
+    `;
+
+}
+
+
+// ============================================
+// INCIDENT TIMELINE
+// ============================================
+
+function displayIncidentTimeline(event) {
+
+    if (!event) {
+        return;
+    }
+
+
+    const existing =
+        incidentTimelineElement.innerHTML;
+
+
+    const isEmpty =
+        existing.includes("No incidents recorded yet.");
+
+
+    const newIncident = `
+
+        <div class="timeline-item ${event.finalSeverity.toLowerCase()}">
+
+            <div class="timeline-marker"></div>
+
+            <div class="timeline-content">
+
+                <div class="timeline-time">
+                    ${escapeHTML(event.timestamp)}
+                </div>
+
+                <h3>
+                    ${escapeHTML(event.threatType)}
+                </h3>
+
+                <p>
+                    ${escapeHTML(event.eventType)}
+                    • User:
+                    ${escapeHTML(event.username)}
+                    • IP:
+                    ${escapeHTML(event.ip)}
+                </p>
+
+                <strong>
+                    Risk: ${event.finalScore}/100
+                    (${event.finalSeverity})
+                </strong>
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    if (isEmpty) {
+
+        incidentTimelineElement.innerHTML =
+            newIncident;
+
+    } else {
+
+        incidentTimelineElement.insertAdjacentHTML(
+            "afterbegin",
+            newIncident
+        );
+
+    }
+
+}
+
+
+// ============================================
+// CHART INITIALIZATION
+// ============================================
+
+function initializeCharts() {
+
+    const riskCanvas =
         document.getElementById("riskChart");
 
-    if (!canvas) {
-
-        console.error(
-            "Risk chart canvas not found."
-        );
-
-        return;
-    }
-
-    const ctx =
-        canvas.getContext("2d");
-
-    riskChart = new Chart(
-        ctx,
-        {
-
-            type: "line",
-
-            data: {
-
-                labels: [],
-
-                datasets: [
-
-                    {
-
-                        label:
-                            "Security Risk Score",
-
-                        data: [],
-
-                        borderWidth: 3,
-
-                        tension: 0.35,
-
-                        fill: true,
-
-                        pointRadius: 5,
-
-                        pointHoverRadius: 7
-
-                    }
-
-                ]
-
-            },
-
-            options: {
-
-                responsive: true,
-
-                maintainAspectRatio: false,
-
-                scales: {
-
-                    y: {
-
-                        min: 0,
-
-                        max: 100,
-
-                        ticks: {
-
-                            stepSize: 20
-
-                        },
-
-                        title: {
-
-                            display: true,
-
-                            text:
-                                "Risk Score"
-
-                        }
-
-                    },
-
-                    x: {
-
-                        title: {
-
-                            display: true,
-
-                            text:
-                                "Security Scans"
-
-                        }
-
-                    }
-
-                },
-
-                plugins: {
-
-                    legend: {
-
-                        display: true
-
-                    }
-
-                }
-
-            }
-
-        }
-    );
-
-}
-
-
-// ========================================
-// INITIALIZE THREAT CHART
-// ========================================
-
-function initializeThreatChart() {
-
-    const canvas =
+    const threatCanvas =
         document.getElementById("threatChart");
 
-    if (!canvas) {
 
-        console.error(
-            "Threat chart canvas not found."
-        );
-
+    if (!riskCanvas || !threatCanvas) {
+        console.warn("Chart canvases not found.");
         return;
     }
 
-    const ctx =
-        canvas.getContext("2d");
 
-    threatChart = new Chart(
-        ctx,
-        {
+    riskChart = new Chart(riskCanvas, {
 
-            type: "bar",
+        type: "line",
 
-            data: {
+        data: {
 
-                labels: [
+            labels: [],
 
-                    "Normal Login",
+            datasets: [{
 
-                    "Failed Login",
+                label: "Risk Score",
 
-                    "Suspicious Login",
+                data: [],
 
-                    "New IP Login",
+                borderWidth: 3,
 
-                    "Multiple Failed"
+                tension: 0.35,
 
-                ],
+                fill: false
 
-                datasets: [
+            }]
 
-                    {
+        },
 
-                        label:
-                            "Detected Events",
+        options: {
 
-                        data: [
+            responsive: true,
 
-                            0,
-                            0,
-                            0,
-                            0,
-                            0
+            maintainAspectRatio: false,
 
-                        ],
+            scales: {
 
-                        borderWidth: 2
+                y: {
 
+                    min: 0,
+
+                    max: 100,
+
+                    ticks: {
+                        stepSize: 20
                     }
 
-                ]
+                }
 
             },
 
-            options: {
+            plugins: {
 
-                responsive: true,
-
-                maintainAspectRatio: false,
-
-                scales: {
-
-                    y: {
-
-                        beginAtZero: true,
-
-                        ticks: {
-
-                            stepSize: 1
-
-                        },
-
-                        title: {
-
-                            display: true,
-
-                            text:
-                                "Number of Events"
-
-                        }
-
-                    },
-
-                    x: {
-
-                        title: {
-
-                            display: true,
-
-                            text:
-                                "Threat Category"
-
-                        }
-
-                    }
-
-                },
-
-                plugins: {
-
-                    legend: {
-
-                        display: true
-
-                    }
-
+                legend: {
+                    display: true
                 }
 
             }
 
         }
-    );
+
+    });
+
+
+    threatChart = new Chart(threatCanvas, {
+
+        type: "doughnut",
+
+        data: {
+
+            labels: [
+                "Normal",
+                "Medium",
+                "High",
+                "Critical"
+            ],
+
+            datasets: [{
+
+                data: [
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+
+                borderWidth: 2
+
+            }]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            plugins: {
+
+                legend: {
+                    position: "bottom"
+                }
+
+            }
+
+        }
+
+    });
 
 }
 
 
-// ========================================
-// UPDATE RISK CHART
-// ========================================
+// ============================================
+// UPDATE CHARTS
+// ============================================
 
-function updateRiskChart(score) {
+function updateCharts() {
+
+    updateRiskChart();
+
+    updateThreatChart();
+
+}
+
+
+// ============================================
+// RISK CHART
+// ============================================
+
+function updateRiskChart() {
 
     if (!riskChart) {
-
         return;
-
     }
 
-    scanNumber++;
-
-    riskHistory.push(score);
-
-    scanLabels.push(
-        `Scan ${scanNumber}`
-    );
 
     riskChart.data.labels =
-        scanLabels;
+        riskHistory.map(item => item.label);
+
 
     riskChart.data.datasets[0].data =
-        riskHistory;
+        riskHistory.map(item => item.score);
+
 
     riskChart.update();
 
 }
 
 
-// ========================================
-// UPDATE THREAT CHART
-// ========================================
+// ============================================
+// THREAT DISTRIBUTION
+// ============================================
 
-function updateThreatChart(eventType) {
+function updateThreatChart() {
 
     if (!threatChart) {
-
         return;
-
     }
 
-    if (
-        Object.prototype.hasOwnProperty.call(
-            threatCounts,
-            eventType
-        )
-    ) {
 
-        threatCounts[eventType]++;
+    const normalCount =
+        events.filter(event =>
+            event.finalSeverity === "LOW"
+        ).length;
 
-    }
+
+    const mediumCount =
+        events.filter(event =>
+            event.finalSeverity === "MEDIUM"
+        ).length;
+
+
+    const highCount =
+        events.filter(event =>
+            event.finalSeverity === "HIGH"
+        ).length;
+
+
+    const criticalCount =
+        events.filter(event =>
+            event.finalSeverity === "CRITICAL"
+        ).length;
+
 
     threatChart.data.datasets[0].data = [
 
-        threatCounts.normal_login,
+        normalCount,
 
-        threatCounts.failed_login,
+        mediumCount,
 
-        threatCounts.suspicious_login,
+        highCount,
 
-        threatCounts.new_ip_login,
-
-        threatCounts.multiple_failed_logins
+        criticalCount
 
     ];
+
 
     threatChart.update();
 
 }
 
 
-// ========================================
-// GET SEVERITY FROM RISK SCORE
-// ========================================
-//
-// 80 - 100 = CRITICAL
-// 60 - 79  = HIGH
-// 30 - 59  = MEDIUM
-// 0  - 29  = LOW
-//
-// This is the important fix for HIGH RISK.
-//
+// ============================================
+// TIME LABEL
+// ============================================
 
-function getSeverityFromScore(score) {
+function getTimeLabel() {
 
-    score = Number(score) || 0;
-
-    if (score >= 80) {
-
-        return "CRITICAL";
-
-    }
-
-    if (score >= 60) {
-
-        return "HIGH";
-
-    }
-
-    if (score >= 30) {
-
-        return "MEDIUM";
-
-    }
-
-    return "LOW";
-
-}
-
-
-// ========================================
-// RUN SECURITY SCAN
-// ========================================
-
-async function runSecurityScan() {
-
-    if (!scanButton) {
-
-        console.error(
-            "Scan button not found."
-        );
-
-        return;
-
-    }
-
-    scanButton.disabled = true;
-
-    scanButton.textContent =
-        "ANALYZING...";
-
-    try {
-
-        const response =
-            await fetch(API_URL);
-
-        if (!response.ok) {
-
-            throw new Error(
-                `API returned ${response.status}`
-            );
-
+    return new Date().toLocaleTimeString(
+        [],
+        {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
         }
-
-        const data =
-            await response.json();
-
-        console.log(
-            "Security Analysis:",
-            data
-        );
-
-        updateDashboard(data);
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "Security scan failed:",
-            error
-        );
-
-        showError();
-
-    }
-
-    finally {
-
-        scanButton.disabled = false;
-
-        scanButton.textContent =
-            "RUN SECURITY SCAN";
-
-    }
-
-}
-
-
-// ========================================
-// UPDATE DASHBOARD
-// ========================================
-
-function updateDashboard(data) {
-
-    // ------------------------------------
-    // BASIC VALIDATION
-    // ------------------------------------
-
-    if (!data) {
-
-        console.error(
-            "No data received from API."
-        );
-
-        return;
-
-    }
-
-
-    // ------------------------------------
-    // GET DATA FROM API
-    // ------------------------------------
-
-    const finalRisk =
-        data.final_risk || {};
-
-    const event =
-        data.event || {};
-
-
-    // ------------------------------------
-    // GET RISK SCORE
-    // ------------------------------------
-
-    const score =
-        Number(
-            finalRisk.final_risk_score
-        ) || 0;
-
-
-    // ------------------------------------
-    // DETERMINE SEVERITY
-    // ------------------------------------
-    //
-    // IMPORTANT:
-    // We calculate severity from the
-    // final score so HIGH is never missed.
-    //
-
-    const severity =
-        getSeverityFromScore(score);
-
-
-    // ------------------------------------
-    // INCREASE TOTAL EVENTS
-    // ------------------------------------
-
-    totalEvents++;
-
-
-    // ------------------------------------
-    // UPDATE CRITICAL / HIGH COUNTERS
-    // ------------------------------------
-
-    if (severity === "CRITICAL") {
-
-        criticalThreats++;
-
-    }
-
-    else if (severity === "HIGH") {
-
-        highThreats++;
-
-    }
-
-
-    // ------------------------------------
-    // UPDATE TOP DASHBOARD CARDS
-    // ------------------------------------
-
-    if (totalEventsElement) {
-
-        totalEventsElement.textContent =
-            totalEvents;
-
-    }
-
-    if (criticalThreatsElement) {
-
-        criticalThreatsElement.textContent =
-            criticalThreats;
-
-    }
-
-    if (highThreatsElement) {
-
-        highThreatsElement.textContent =
-            highThreats;
-
-    }
-
-    if (currentRiskElement) {
-
-        currentRiskElement.textContent =
-            score;
-
-    }
-
-
-    // ------------------------------------
-    // UPDATE CURRENT RISK PANEL
-    // ------------------------------------
-
-    if (riskScoreElement) {
-
-        riskScoreElement.textContent =
-            score;
-
-    }
-
-    if (riskSeverityElement) {
-
-        riskSeverityElement.textContent =
-            severity;
-
-    }
-
-    updateRiskColor(
-        severity
-    );
-
-
-    // ------------------------------------
-    // CREATE CORRECTED DATA
-    // ------------------------------------
-    //
-    // This makes the rest of the dashboard
-    // use the same calculated severity.
-    //
-
-    const correctedData = {
-
-        ...data,
-
-        final_risk: {
-
-            ...finalRisk,
-
-            final_risk_score:
-                score,
-
-            severity:
-                severity
-
-        }
-
-    };
-
-
-    // ------------------------------------
-    // UPDATE RISK CHART
-    // ------------------------------------
-
-    updateRiskChart(
-        score
-    );
-
-
-    // ------------------------------------
-    // UPDATE THREAT CHART
-    // ------------------------------------
-
-    updateThreatChart(
-        event.event_type
-    );
-
-
-    // ------------------------------------
-    // UPDATE THREAT MONITOR
-    // ------------------------------------
-
-    addThreat(
-        correctedData
-    );
-
-
-    // ------------------------------------
-    // UPDATE AI ANALYSIS
-    // ------------------------------------
-
-    displayAIAnalysis(
-        data
-    );
-
-
-    // ------------------------------------
-    // UPDATE RECOMMENDATIONS
-    // ------------------------------------
-
-    if (
-        data.explanation &&
-        Array.isArray(
-            data.explanation.recommendations
-        )
-    ) {
-
-        displayRecommendations(
-            data.explanation.recommendations
-        );
-
-    }
-
-
-    // ------------------------------------
-    // UPDATE TIMELINE
-    // ------------------------------------
-
-    addTimelineEvent(
-        correctedData
-    );
-
-
-    // ------------------------------------
-    // DEBUG LOG
-    // ------------------------------------
-
-    console.log(
-        "================================"
-    );
-
-    console.log(
-        "DASHBOARD UPDATED"
-    );
-
-    console.log(
-        "Risk Score:",
-        score
-    );
-
-    console.log(
-        "Severity:",
-        severity
-    );
-
-    console.log(
-        "Total Events:",
-        totalEvents
-    );
-
-    console.log(
-        "Critical Threats:",
-        criticalThreats
-    );
-
-    console.log(
-        "High Risk:",
-        highThreats
-    );
-
-    console.log(
-        "================================"
     );
 
 }
 
 
-// ========================================
-// RISK COLOR
-// ========================================
+// ============================================
+// ERROR MESSAGE
+// ============================================
 
-function updateRiskColor(severity) {
+function showError(message) {
 
-    const riskCircle =
-        document.querySelector(
-            ".risk-circle"
-        );
-
-    if (
-        !riskCircle ||
-        !riskSeverityElement
-    ) {
-
-        return;
-
-    }
-
-
-    severity =
-        String(severity || "")
-            .toUpperCase()
-            .trim();
-
-
-    if (severity === "CRITICAL") {
-
-        riskSeverityElement.style.color =
-            "#ff3d5a";
-
-        riskCircle.style.borderColor =
-            "#ff3d5a";
-
-    }
-
-    else if (severity === "HIGH") {
-
-        riskSeverityElement.style.color =
-            "#ff6b35";
-
-        riskCircle.style.borderColor =
-            "#ff6b35";
-
-    }
-
-    else if (severity === "MEDIUM") {
-
-        riskSeverityElement.style.color =
-            "#ffb300";
-
-        riskCircle.style.borderColor =
-            "#ffb300";
-
-    }
-
-    else {
-
-        riskSeverityElement.style.color =
-            "#00e676";
-
-        riskCircle.style.borderColor =
-            "#00e676";
-
-    }
-
-}
-
-
-// ========================================
-// ADD THREAT
-// ========================================
-
-function addThreat(data) {
-
-    const event =
-        data.event || {};
-
-    const risk =
-        data.final_risk || {};
-
-    const explanation =
-        data.explanation || {};
-
-
-    if (!threatList) {
-
-        return;
-
-    }
-
-
-    // ------------------------------------
-    // REMOVE EMPTY STATE
-    // ------------------------------------
-
-    const emptyState =
-        threatList.querySelector(
-            ".empty-state"
-        );
-
-    if (emptyState) {
-
-        emptyState.remove();
-
-    }
-
-
-    // ------------------------------------
-    // CREATE THREAT ITEM
-    // ------------------------------------
-
-    const item =
-        document.createElement(
-            "div"
-        );
-
-    item.className =
-        "threat-item";
-
-
-    // ------------------------------------
-    // SELECT ICON
-    // ------------------------------------
-
-    let icon =
-        "🟢";
-
-    if (
-        risk.severity === "CRITICAL"
-    ) {
-
-        icon =
-            "🔴";
-
-    }
-
-    else if (
-        risk.severity === "HIGH"
-    ) {
-
-        icon =
-            "🟠";
-
-    }
-
-    else if (
-        risk.severity === "MEDIUM"
-    ) {
-
-        icon =
-            "🟡";
-
-    }
-
-
-    // ------------------------------------
-    // THREAT TEXT
-    // ------------------------------------
-
-    item.innerHTML = `
-
-        <div class="threat-info">
-
-            <div class="threat-icon">
-
-                ${icon}
-
-            </div>
-
-            <div>
-
-                <div class="threat-title">
-
-                    ${
-                        explanation.threat_type ||
-                        "Security Event"
-                    }
-
-                </div>
-
-                <div class="threat-meta">
-
-                    User:
-                    ${event.username || "Unknown"}
-
-                    &nbsp; • &nbsp;
-
-                    IP:
-                    ${event.ip_address || "Unknown"}
-
-                </div>
-
-                <div class="threat-meta">
-
-                    Event:
-                    ${event.event_type || "Unknown"}
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <div class="threat-risk">
-
-            ${
-                risk.final_risk_score || 0
-            }/100
-
-            <div class="threat-meta">
-
-                ${
-                    risk.severity || "LOW"
-                }
-
-            </div>
-
-        </div>
-
-    `;
-
-
-    // ------------------------------------
-    // ADD TO TOP OF LIST
-    // ------------------------------------
-
-    threatList.prepend(
-        item
-    );
-
-
-    // ------------------------------------
-    // KEEP MAX 10 EVENTS
-    // ------------------------------------
-
-    while (
-        threatList.children.length > 10
-    ) {
-
-        threatList.removeChild(
-            threatList.lastChild
-        );
-
-    }
-
-}
-
-
-// ========================================
-// AI ANALYSIS
-// ========================================
-
-function displayAIAnalysis(data) {
-
-    if (!aiAnalysis) {
-
-        return;
-
-    }
-
-    const explanation =
-        data.explanation || {};
-
-
-    const reasons =
-        Array.isArray(
-            explanation.reasons
-        )
-            ? explanation.reasons
-            : [];
-
-
-    aiAnalysis.innerHTML = `
-
-        <div class="analysis-box">
-
-            <h3>
-                🧠 Threat Classification
-            </h3>
-
-            <p>
-
-                <strong>
-
-                    ${
-                        explanation.threat_type ||
-                        "Unknown"
-                    }
-
-                </strong>
-
-            </p>
-
-            <p style="margin-top:10px;">
-
-                AI Confidence:
-
-                <strong>
-
-                    ${
-                        explanation.confidence ||
-                        0
-                    }%
-
-                </strong>
-
-            </p>
-
-        </div>
-
-
-        <div class="analysis-box">
-
-            <h3>
-                🔍 Detection Factors
-            </h3>
-
-            ${
-                reasons
-                    .map(
-                        reason => `
-
-                            <div class="reason">
-
-                                ${reason}
-
-                            </div>
-
-                        `
-                    )
-                    .join("")
-            }
-
-        </div>
-
-    `;
-
-}
-
-
-// ========================================
-// RECOMMENDATIONS
-// ========================================
-
-function displayRecommendations(
-    items
-) {
-
-    if (!recommendations) {
-
-        return;
-
-    }
-
-
-    if (
-        !items ||
-        items.length === 0
-    ) {
-
-        recommendations.innerHTML = `
-
-            <div class="empty-state">
-
-                No defensive actions required.
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    recommendations.innerHTML =
-
-        items
-            .map(
-                item => `
-
-                    <div class="recommendation">
-
-                        ${item}
-
-                    </div>
-
-                `
-            )
-            .join("");
-
-}
-
-
-// ========================================
-// INCIDENT TIMELINE
-// ========================================
-
-function addTimelineEvent(data) {
-
-    if (!incidentTimeline) {
-
-        return;
-
-    }
-
-
-    const event =
-        data.event || {};
-
-    const risk =
-        data.final_risk || {};
-
-    const explanation =
-        data.explanation || {};
-
-
-    // ------------------------------------
-    // REMOVE EMPTY STATE
-    // ------------------------------------
-
-    const emptyState =
-        incidentTimeline.querySelector(
-            ".empty-state"
-        );
-
-    if (emptyState) {
-
-        emptyState.remove();
-
-    }
-
-
-    // ------------------------------------
-    // CREATE TIMELINE ITEM
-    // ------------------------------------
-
-    const item =
-        document.createElement(
-            "div"
-        );
-
-    item.className =
-        "threat-item";
-
-
-    item.innerHTML = `
-
-        <div class="threat-info">
-
-            <div class="threat-icon">
-
-                ⏱️
-
-            </div>
-
-            <div>
-
-                <div class="threat-title">
-
-                    ${
-                        explanation.threat_type ||
-                        "Security Event"
-                    }
-
-                </div>
-
-                <div class="threat-meta">
-
-                    ${
-                        event.event_type ||
-                        "Unknown"
-                    }
-
-                    &nbsp; • &nbsp;
-
-                    ${
-                        event.username ||
-                        "Unknown"
-                    }
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <div class="threat-risk">
-
-            ${
-                risk.final_risk_score || 0
-            }/100
-
-            <div class="threat-meta">
-
-                ${
-                    risk.severity || "LOW"
-                }
-
-            </div>
-
-        </div>
-
-    `;
-
-
-    incidentTimeline.prepend(
-        item
-    );
-
-
-    // ------------------------------------
-    // KEEP MAX 10 EVENTS
-    // ------------------------------------
-
-    while (
-        incidentTimeline.children.length > 10
-    ) {
-
-        incidentTimeline.removeChild(
-            incidentTimeline.lastChild
-        );
-
-    }
-
-}
-
-
-// ========================================
-// ERROR HANDLING
-// ========================================
-
-function showError() {
-
-    if (!threatList) {
-
-        return;
-
-    }
-
-
-    threatList.innerHTML = `
+    threatListElement.innerHTML = `
 
         <div class="empty-state">
 
-            ❌ Unable to connect to
-            the Cyber Defense API.
-
-            <br><br>
-
-            Make sure the public API is running.
-
-            <br><br>
-
             <strong>
-
-                ${API_URL}
-
+                ⚠️ Error
             </strong>
+
+            <br><br>
+
+            ${escapeHTML(message)}
 
         </div>
 
@@ -1357,24 +922,27 @@ function showError() {
 }
 
 
-// ========================================
-// SCAN BUTTON
-// ========================================
+// ============================================
+// HTML ESCAPE
+// ============================================
 
-if (scanButton) {
+function escapeHTML(value) {
 
-    scanButton.addEventListener(
-        "click",
-        runSecurityScan
-    );
+    if (value === null || value === undefined) {
+        return "";
+    }
+
+
+    return String(value)
+
+        .replace(/&/g, "&amp;")
+
+        .replace(/</g, "&lt;")
+
+        .replace(/>/g, "&gt;")
+
+        .replace(/"/g, "&quot;")
+
+        .replace(/'/g, "&#039;");
 
 }
-
-
-// ========================================
-// START APPLICATION
-// ========================================
-
-initializeRiskChart();
-
-initializeThreatChart();
