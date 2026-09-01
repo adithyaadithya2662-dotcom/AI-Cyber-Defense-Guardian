@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
+from pathlib import Path
 import os
 
 from simulator import generate_security_event
@@ -10,38 +11,92 @@ from ai.anomaly_detector import AnomalyDetector
 
 
 # ============================================================
-# FLASK APP
+# PATHS
 # ============================================================
 
-app = Flask(
-    __name__,
-    static_folder=".",
-    static_url_path=""
-)
+BASE_DIR = Path(__file__).resolve().parent
+
+# Possible locations for the frontend
+FRONTEND_DIRS = [
+    BASE_DIR,
+    BASE_DIR / "frontend",
+    BASE_DIR / "static",
+    BASE_DIR / "templates"
+]
+
+# Find the directory containing index.html
+FRONTEND_DIR = None
+
+for directory in FRONTEND_DIRS:
+    if (directory / "index.html").exists():
+        FRONTEND_DIR = directory
+        break
+
+if FRONTEND_DIR is None:
+    FRONTEND_DIR = BASE_DIR
+
+
+# ============================================================
+# FLASK
+# ============================================================
+
+app = Flask(__name__)
 
 CORS(app)
-
-
-# ============================================================
-# AI DETECTOR
-# ============================================================
 
 ai_detector = AnomalyDetector()
 
 
 # ============================================================
-# FRONTEND DASHBOARD
+# DASHBOARD
 # ============================================================
 
 @app.route("/")
 def dashboard():
-    """
-    Serve the Cyber Defense Guardian dashboard.
-    """
+
+    index_file = FRONTEND_DIR / "index.html"
+
+    if not index_file.exists():
+        return jsonify({
+            "error": "Dashboard index.html not found",
+            "searched_locations": [
+                str(directory / "index.html")
+                for directory in FRONTEND_DIRS
+            ]
+        }), 500
+
     return send_from_directory(
-        os.path.dirname(os.path.abspath(__file__)),
+        str(FRONTEND_DIR),
         "index.html"
     )
+
+
+# ============================================================
+# FRONTEND FILES
+# ============================================================
+
+@app.route("/<path:filename>")
+def frontend_file(filename):
+
+    # Never interfere with API routes
+    if filename.startswith("api/"):
+        return jsonify({
+            "error": "API endpoint not found"
+        }), 404
+
+    requested_file = FRONTEND_DIR / filename
+
+    if requested_file.exists() and requested_file.is_file():
+
+        return send_from_directory(
+            str(FRONTEND_DIR),
+            filename
+        )
+
+    return jsonify({
+        "error": "File not found",
+        "file": filename
+    }), 404
 
 
 # ============================================================
@@ -50,6 +105,7 @@ def dashboard():
 
 @app.route("/health")
 def health():
+
     return jsonify({
         "status": "healthy",
         "service": "AI Cyber Defense Guardian"
@@ -57,23 +113,26 @@ def health():
 
 
 # ============================================================
-# SECURITY ANALYSIS API
+# SECURITY ANALYSIS
 # ============================================================
 
 @app.route("/api/analyze")
 def analyze_security_event():
 
     # --------------------------------------------------------
-    # 1. Generate security event
+    # Generate security event
     # --------------------------------------------------------
 
     event = generate_security_event()
 
-    event_type = event.get("event_type", "normal_login")
+    event_type = event.get(
+        "event_type",
+        "normal_login"
+    )
 
 
     # --------------------------------------------------------
-    # 2. Convert event type into security indicators
+    # Security indicators
     # --------------------------------------------------------
 
     if event_type == "normal_login":
@@ -114,7 +173,7 @@ def analyze_security_event():
 
 
     # --------------------------------------------------------
-    # 3. Add indicators to event
+    # Add indicators
     # --------------------------------------------------------
 
     event["failed_attempts"] = failed_attempts
@@ -123,14 +182,14 @@ def analyze_security_event():
 
 
     # --------------------------------------------------------
-    # 4. Rule-based threat detection
+    # Rule-based detection
     # --------------------------------------------------------
 
     rule_result = analyze_event(event)
 
 
     # --------------------------------------------------------
-    # 5. AI anomaly detection
+    # AI detection
     # --------------------------------------------------------
 
     ai_result = ai_detector.detect(
@@ -141,7 +200,7 @@ def analyze_security_event():
 
 
     # --------------------------------------------------------
-    # 6. Final risk calculation
+    # Final risk
     # --------------------------------------------------------
 
     final_result = calculate_final_risk(
@@ -152,7 +211,7 @@ def analyze_security_event():
 
 
     # --------------------------------------------------------
-    # 7. Explain the threat
+    # Explanation
     # --------------------------------------------------------
 
     explanation = explain_threat(
@@ -163,7 +222,7 @@ def analyze_security_event():
 
 
     # --------------------------------------------------------
-    # 8. Return complete analysis
+    # Response
     # --------------------------------------------------------
 
     return jsonify({
@@ -182,12 +241,14 @@ def analyze_security_event():
 
 
 # ============================================================
-# RUN SERVER
+# START SERVER
 # ============================================================
 
 if __name__ == "__main__":
 
-    port = int(os.environ.get("PORT", 5000))
+    port = int(
+        os.environ.get("PORT", 5000)
+    )
 
     app.run(
         host="0.0.0.0",
