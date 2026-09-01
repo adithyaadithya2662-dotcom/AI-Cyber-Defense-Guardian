@@ -119,7 +119,8 @@ The web dashboard displays:
                     │  Security Dashboard │
                     └─────────────────────┘
 
-📁 Project Structure
+
+### 📁 Project Structure
 AI-Cyber-Defense-Guardian/
 │
 ├── Backend/
@@ -143,82 +144,82 @@ AI-Cyber-Defense-Guardian/
 ├── style.css
 ├── .gitignore
 └── README.md
-🛠️ Technologies Used
-Frontend
-HTML5
-CSS3
-JavaScript
-Chart.js
-Backend
-Python
-Flask
-Flask-CORS
-Gunicorn
-Machine Learning
-Scikit-learn
-NumPy
-Pandas
-Isolation Forest / Anomaly Detection
-Version Control and Deployment
-Git
-GitHub
-SnapDeploy
-🔄 How the System Works
-Step 1 — Generate Security Event
+##🛠️ Technologies Used
+*Frontend
+*HTML5
+*CSS3
+*JavaScript
+*Chart.js
+*Backend
+*Python
+*Flask
+*Flask-CORS
+*Gunicorn
+*Machine Learning
+*Scikit-learn
+*NumPy
+*Pandas
+*Isolation Forest / Anomaly Detection
+*Version Control and Deployment
+*Git
+*GitHub
+*SnapDeploy
+## 🔄 How the System Works
+*Step 1 — Generate Security Event
 
 The security simulator generates an authentication event.
 
-Example:
+*Example:
 {
   "event_type": "multiple_failed_logins",
   "username": "alice",
   "failed_attempts": 8,
   "new_ip": 1
 }
-Step 2 — Rule-Based Analysis
+*Step 2 — Rule-Based Analysis
 
 The event is analyzed using predefined cybersecurity rules.
 
 The rules evaluate factors such as failed login attempts, new IP addresses, and unusual login times.
 
-Step 3 — AI Analysis
+*Step 3 — AI Analysis
 
 The machine-learning model analyzes the event and determines whether the behavior appears anomalous.
 
-Step 4 — Final Risk Calculation
+*Step 4 — Final Risk Calculation
 
 The rule-based risk score and AI anomaly result are combined to produce the final risk score and severity.
 
-Step 5 — Explainable AI
+*Step 5 — Explainable AI
 
 The system generates an explanation describing why the activity may be suspicious and provides recommended defensive actions.
 
-Step 6 — Dashboard
+*Step 6 — Dashboard
 
 The results are displayed on the cybersecurity dashboard using charts, threat cards, risk indicators, AI analysis, and recommendations.
 
-🌐 API Endpoints
+## 🌐 API Endpoints
 Health Check
 GET /health
 
-Example response:
+*Example response:
 
 {
   "service": "AI Cyber Defense Guardian",
   "status": "healthy"
 }
-Security Analysis
+*Security Analysis
 GET /api/analyze
 
 This endpoint generates a security event and performs:
 
-Rule-based threat analysis
-AI anomaly detection
-Final risk calculation
-Threat explanation
-Defensive recommendations
+>Rule-based threat analysis
+>AI anomaly detection
+>Final risk calculation
+>Threat explanation
+>Defensive recommendations
 
-Example response structure:
+*Example response structure:
 
 {
   "event": {},
@@ -227,7 +228,7 @@ Example response structure:
   "final_risk": {},
   "explanation": {}
 }
-💻 Running the Project Locally
+## 💻 Running the Project Locally
 1. Clone the Repository
 git clone https://github.com/adithyaadithya2662-dotcom/AI-Cyber-Defense-Guardian.git
 2. Enter the Project Directory
@@ -244,13 +245,13 @@ pip install -r Backend\requirements.txt
 6. Start the Flask Backend
 python Backend\app.py
 
-The application will run on:
+## The application will run on:
 
 http://localhost:5000
 
 Open the address in a browser to access the dashboard.
 
-📊 Example Threat Detection
+## 📊 Example Threat Detection
 
 A suspicious authentication event may contain:
 
@@ -263,7 +264,7 @@ The system may classify the event as:
 Risk Score: 95
 Severity: CRITICAL
 
-Possible defensive recommendations include:
+* Possible defensive recommendations include:
 
 • Investigate the source IP address
 • Enable or verify multi-factor authentication
@@ -271,49 +272,49 @@ Possible defensive recommendations include:
 • Consider temporarily blocking the suspicious source
 🎯 Project Objectives
 
-The main objectives of AI Cyber Defense Guardian are:
+## The main objectives of AI Cyber Defense Guardian are:
 
-Detect suspicious authentication behavior.
-Combine traditional cybersecurity rules with machine learning.
-Calculate understandable cybersecurity risk scores.
-Explain why potentially dangerous activity was detected.
-Provide practical defensive recommendations.
-Present security information through an easy-to-understand dashboard.
-Demonstrate the use of AI techniques in cybersecurity monitoring.
-🔮 Future Improvements
+>Detect suspicious authentication behavior.
+>Combine traditional cybersecurity rules with machine learning.
+>Calculate understandable cybersecurity risk scores.
+>Explain why potentially dangerous activity was detected.
+>Provide practical defensive recommendations.
+>Present security information through an easy-to-understand dashboard.
+>Demonstrate the use of AI techniques in cybersecurity monitoring.
+## 🔮 Future Improvements
 
-Possible future improvements include:
+* Possible future improvements include:
 
-Real-time security log ingestion
-Real authentication log integration
-Email security alerts
-SMS notifications
-Advanced machine-learning models
-User behavior analytics
-IP reputation checking
-Geo-location analysis
-Automated incident response
-Security report generation
-Database integration
-Authentication and role-based access control
-Historical security event storage
-⚠️ Disclaimer
+>Real-time security log ingestion
+>Real authentication log integration
+>Email security alerts
+>SMS notifications
+>Advanced machine-learning models
+>User behavior analytics
+>IP reputation checking
+>Geo-location analysis
+>Automated incident response
+>Security report generation
+>Database integration
+>Authentication and role-based access control
+>Historical security event storage
+##⚠️ Disclaimer
 
 This project is intended for educational, research, and demonstration purposes.
 
 The security events used by the current system are simulated and should not be treated as real-world security incidents.
 
-👨‍💻 Author
+##👨‍💻 Author
 
-Adithya
+Adithya, Druva M H, Kumaraswamy K R, Chethan Gowda R S
 
-AI Cyber Defense Guardian
+## AI Cyber Defense Guardian
 
 A cybersecurity project combining:
 
 Artificial Intelligence + Machine Learning + Threat Detection + Risk Analysis + Explainable AI
 
-⭐ Repository
+## ⭐ Repository
 
 GitHub Repository:
 
