@@ -2,6 +2,12 @@
 
 AI Cyber Defense Guardian is an AI-powered cybersecurity threat detection and risk analysis system. It combines rule-based security analysis with machine-learning anomaly detection to identify suspicious authentication activity and provide understandable security recommendations.
 
+## 🌐 Live Demo
+
+🚀 **[Open AI Cyber Defense Guardian Live Dashboard](https://duo-stretch-wool-remind.trycloudflare.com)**
+
+> The live demo is provided through a temporary Cloudflare Quick Tunnel for development and demonstration purposes. The link is available only while the local Flask server and Cloudflare Tunnel are running.
+ 
 ## 🚀 Project Overview
 
 The system simulates cybersecurity login events and analyzes them to determine the potential security risk.
