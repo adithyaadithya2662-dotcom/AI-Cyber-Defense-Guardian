@@ -388,7 +388,7 @@ The security events used by the current system are simulated and should not be t
 
 ## 👨‍💻 Author
 
-Adithya , Chethan Gowda R S, Kumarswamy K R, Druva Gowda M H.
+Adithya , Chethan Gowda R S, Kumarswamy K R, Druva M H.
 
 AI Cyber Defense Guardian
 
