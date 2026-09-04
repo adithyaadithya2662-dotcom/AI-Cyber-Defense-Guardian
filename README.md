@@ -4,8 +4,7 @@ AI Cyber Defense Guardian is an AI-powered cybersecurity threat detection and ri
 
 ## 🌐 Live Demo
 
-🚀 👉  [OPEN AI CYBER DEFENSE GUARDIAN](https://wondering-lightbox-intervals-comparable.trycloudflare.com)
-
+🚀 👉 **[AI Cyber Defense Guardian — Live Demo](https://expanding-bald-september-lucy.trycloudflare.com)**
 > The live demo is provided through a temporary Cloudflare Quick Tunnel for development and demonstration purposes. The link is available only while the local Flask server and Cloudflare Tunnel are running.
  
 ## 🚀 Project Overview
